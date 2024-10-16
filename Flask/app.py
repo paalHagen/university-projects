@@ -3,14 +3,9 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-# Test:
-# @app.route("/")
-# def hello_world():
-#     return "<p>Hello, World!</p>"
-
-# CRUD (Create, Read, Update, Delete) for "Cars" - hver funksjon returnerer et
-# funksjonskall til en funksjon som skal ligge i en annen fil. Disse funksjonene skal
-# f. eks delete fra databasen
+# Endpoints (CRUD: Create, Read, Update, Delete er funksjoner som skal være plassert
+# i database python filen). Endpointsene under håndterer hva som skjer med HTTP
+# requests, og de returnerer/kaller på CRUD funksjonene i den andre filen
 @app.route("/cars", methods=["POST"])
 def create_car_route():
     data = request.get_json()
@@ -23,12 +18,12 @@ def read_cars_route():
 @app.route("/cars", methods=["PUT"])
 def update_car_route():
     data = request.get_json()
-    return update_car(data['make'], data['model'], data['year'], data['location'], data['status'])
+    return update_car(data["id"], data["make"], data["model"], data["year"], data["location"], data["status"])
 
 @app.route("/cars", methods=["DELETE"])
 def delete_car_route():
     data = request.get_json()
-    delete_car(data['make']) # er dette riktig id/nøkkel?
+    delete_car(data["id"]) # er dette riktig id/nøkkel?
     return get_all_cars() # skal jeg returnere denne, eller bare utføre slettingen
 
 # CRUD (Create, Read, Update, Delete) for "Customer"
@@ -72,6 +67,9 @@ def delete_employee_route():
     data = request.get_json()
     delete_employee(data["name"]) # er dette riktig id/nøkkel?
     return get_all_employees() # skal jeg returnere denne, eller bare utføre slettingen
+
+# Endpoints ("order-car", "cancel-order-car", "rent-car", "return-car")
+@app.route("/order-car", methods=["POST"])
 
 if __name__ == "__main__":
     app.run(debug=True)
