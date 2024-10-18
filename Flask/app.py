@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request  
 # from fil import alle funksjonene i return setningene under
 
 app = Flask(__name__)
@@ -9,7 +9,7 @@ app = Flask(__name__)
 @app.route("/cars", methods=["POST"])
 def create_car_route():
     data = request.get_json()
-    return create_car(data['make'], data['model'], data['year'], data['location'], data['status'])
+    return create_car(data['id'],data['make'], data['model'], data['year'], data['location'], data['status'])
 
 @app.route("/cars", methods=["GET"])
 def read_cars_route():
@@ -23,14 +23,14 @@ def update_car_route():
 @app.route("/cars", methods=["DELETE"])
 def delete_car_route():
     data = request.get_json()
-    delete_car(data["id"]) # er dette riktig id/nøkkel?
-    return get_all_cars() # skal jeg returnere denne, eller bare utføre slettingen
+    delete_car(data["id"]) # er dette riktig id/nøkkel? TROR DET
+    return get_all_cars() # skal jeg returnere denne, eller bare utføre slettingen TROR vi kan velge mellom begge deler, men idk, vi kan spørre Olav. 
 
 # CRUD (Create, Read, Update, Delete) for "Customer"
 @app.route("/customers", methods=["POST"])
 def create_customer_route():
     data = request.get_json()
-    return create_customer(data["name"], data["age"], data["address"])
+    return create_customer(data["customer_id"],data["name"], data["age"], data["address"])
 
 @app.route("/customers", methods=["GET"])
 def read_customers_route():
@@ -39,19 +39,19 @@ def read_customers_route():
 @app.route("/customers", methods=["PUT"])
 def update_customer_route():
     data = request.get_json()
-    return update_customer(data["name"], data["age"], data["address"])
+    return update_customer(data["customer_id"],data["name"], data["age"], data["address"])
 
 @app.route("/customers", methods=["DELETE"])
 def delete_customer_route():
     data = request.get_json()
-    delete_customer(data["name"]) # er dette riktig id/nøkkel?
+    delete_customer(data["customer_id"]) # er dette riktig id/nøkkel? VI KAN lage en customer id, kan være to kunder med samme navn:)
     return get_all_customers() # skal jeg returnere denne, eller bare utføre slettingen
 
 # CRUD (Create, Read, Update, Delete) for "Employees"
 @app.route("/employees", methods=["POST"])
 def create_employee_route():
     data = request.get_json()
-    return create_employee(data["name"], data["address"], data["branch"])
+    return create_employee(data["employee_id"],data["name"], data["address"], data["branch"])
 
 @app.route("/employees", methods=["GET"])
 def read_employees_route():
@@ -60,12 +60,12 @@ def read_employees_route():
 @app.route("/employees", methods=["PUT"])
 def update_employee_route():
     data = request.get_json()
-    return update_employee(data["name"], data["address"], data["branch"])
+    return update_employee(data["employee_id"],data["name"], data["address"], data["branch"])
 
 @app.route("/employees", methods=["DELETE"])
 def delete_employee_route():
     data = request.get_json()
-    delete_employee(data["name"]) # er dette riktig id/nøkkel?
+    delete_employee(data["name"]) # er dette riktig id/nøkkel? Vi legger inn employee id :)
     return get_all_employees() # skal jeg returnere denne, eller bare utføre slettingen
 
 # Endpoints ("order-car", "cancel-order-car", "rent-car", "return-car")
