@@ -6,6 +6,9 @@ from neo4j_folder.DB import order_car, cancel_order_car, rent_car, return_car
 
 app = Flask(__name__)
 
+# return i DB.py: enten boolean eller status code. Hvis boolean så kan jeg skrive if result i app.py,
+# hvis status code så kan jeg skrive if result == 201 i app.py.
+
 # --------------------------------------------------------------------------------------------------------------------------------------
 #             Endpoints -> Cars:
 

@@ -16,7 +16,7 @@ def node_to_json(node):
 # --------------------------------------------------------------------------------------------------------------------------------------
 #             CAR METODENE:
 
-def create_car(id,make,model,year,location,status):
+def create_car(car_id,make,model,year,location,status):
      
     cars = _get_connection().execute_query("MERGE (a:Car{id:$id, make:$make, model:$model, reg:$reg, year:$year,location:$location, status:$status})RETURN a;", 
     id=id, make=make, model=model, year=year,location=location,status=status)
