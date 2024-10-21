@@ -52,10 +52,10 @@ def delete_car(car_id):
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #                   CUSTOMER METODENE
 
-def create_customer(customer_id, name, age, address, has_ordeded:bool=False):
+def create_customer(customer_id, name, age, address):
 
-    customers = _get_connection().execute_query("MERGE (a:Customer{customer_id:$customer_id, name:$name, age:$age, address:$address, has_ordered=$has_ordered})RETURN a;",
-    customer_id=customer_id, name=name,age=age,address=address, has_ordeded=has_ordeded)
+    customers = _get_connection().execute_query("MERGE (a:Customer{customer_id:$customer_id, name:$name, age:$age, address:$address})RETURN a;",
+    customer_id=customer_id, name=name,age=age,address=address)
 
     nodes_json = [node_to_json(record["a"])for record in customers]
     print(nodes_json)
@@ -68,10 +68,10 @@ def read_customers():
         print(nodes_json)
         return nodes_json
 
-def update_customer(customer_id, name, age, address, has_ordered):
+def update_customer(customer_id, name, age, address):
     with _get_connection()._session() as session:
-        customers = session.run("MATCH (a:Customer{customer_id:$customer_id}) set a.name=$name, a.age=$age, a.address=$address, a.has_ordered=$has_ordered RETURN a;",
-        customer_id=customer_id, name=name, age=age, address=address, has_ordered=has_ordered)
+        customers = session.run("MATCH (a:Customer{customer_id:$customer_id}) set a.name=$name, a.age=$age, a.address=$address RETURN a;",
+        customer_id=customer_id, name=name, age=age, address=address)
 
         print(customers)
         
@@ -119,7 +119,113 @@ def delete_employee(employee_id):
 
 
 
-# SJEKK OM KUNDE HAR BESTILT EN ANNEN BIL
+#  ORDER CAR METODENE
 # ---------------------------------------------------------------
-def check_ordered_car(customer_id, car_id):
-    pass
+
+# ORDER a car
+def order_car(customer_id, car_id):
+    with _get_connection()._session() as session:
+        # sjekker om bilen er tilgjengelig
+        car = session.run(
+            "MATCH (a:Car {car_id: $car_id}) "
+            "RETURN a.status AS status;",
+            car_id=car_id).single()
+
+        if car and car["status"] != 'available':
+            return {"error": "This car is not available"}, 400
+        
+        # sjekker om customer allerede har bestilt en bil
+        previous_order = session.run(
+            "MATCH (c:Customer {customer_id: $customer_id})-[:ORDERED]->(a:Car) "
+            "RETURN a LIMIT 1;",
+            customer_id=customer_id).single()
+
+        if previous_order:
+            return {"error": "Customer has already ordered a car"}, 400
+        
+        # Hvis bilen er tilgjengelig og kunden ikke har bestilt en annen bil. Så vil bestillingen gå igjennom. 
+        session.run(
+            "MATCH (c:Customer {customer_id: $customer_id}), (a:Car {car_id: $car_id}) "
+            "MERGE (c)-[:ORDERED]->(a) "
+            "SET a.status = 'booked' "
+            "RETURN c, a;",
+            customer_id=customer_id, car_id=car_id)
+
+        return {"status": "Car ordered and status updated to booked"}
+
+#Cancel order
+
+def cancel_order_car(customer_id, car_id):
+    with _get_connection()._session() as session:
+        # Sjekker om kunden har bestilt en bil
+        order = session.run(
+            "MATCH (c:Customer {customer_id: $customer_id})-[r:ORDERED]->(a:Car {car_id: $car_id}) "
+            "RETURN r;",
+            customer_id=customer_id, car_id=car_id).single()
+
+        if not order:
+            return {"error": "No order found for this customer and car"}, 400
+
+        # Om det er en bestilling mellom kunden til den bilen, blir det forholdet fjernet.
+        session.run(
+            "MATCH (c:Customer {customer_id: $customer_id})-[r:ORDERED]->(a:Car {car_id: $car_id}) "
+            "DELETE r "
+            "SET a.status = 'available' "
+            "RETURN c, a;",
+            customer_id=customer_id, car_id=car_id)
+
+        return {"status": "Order canceled and car status updated to available"}
+
+
+# Renting the car
+
+def rent_car(customer_id, car_id):
+    with _get_connection()._session() as session:
+        # Sjekker om kunden har booket bilen
+        booking = session.run(
+            "MATCH (c:Customer {customer_id: $customer_id})-[:ORDERED]->(a:Car {car_id: $car_id}) "
+            "RETURN a;",
+            customer_id=customer_id, car_id=car_id).single()
+
+        if not booking:
+            return {"error": "Customer does not have a booking for this car"}, 400
+        
+        # Hvis kunden har booket bilen, blir bilens status endret.
+        session.run(
+            "MATCH (c:Customer {customer_id: $customer_id})-[:ORDERED]->(a:Car {car_id: $car_id}) "
+            "SET a.status = 'rented' "
+            "RETURN a;",
+            customer_id=customer_id, car_id=car_id)
+
+        return {"status": "Car rented successfully, status updated to rented"}
+
+#Return car
+
+def return_car(customer_id, car_id, return_status):
+    with _get_connection()._session() as session:
+        # Sjekker om kunden har leid bilen.
+        rental = session.run(
+            "MATCH (c:Customer {customer_id: $customer_id})-[:ORDERED|RENTED]->(a:Car {car_id: $car_id}) "
+            "RETURN a;",
+            customer_id=customer_id, car_id=car_id).single()
+
+        if not rental:
+            return {"error": "Customer has not rented this car"}, 400
+        
+        # Endrer statusen til bilen basert på tilstanden
+        if return_status == 'ok':
+            new_status = 'available'
+        elif return_status == 'damaged':
+            new_status = 'damaged'
+        else:
+            return {"error": "Invalid return status"}, 400
+
+        # Oppdaterer bilens status på bilen og fjerner forholdet. 
+        session.run(
+            "MATCH (c:Customer {customer_id: $customer_id})-[r:ORDERED|RENTED]->(a:Car {car_id: $car_id}) "
+            "DELETE r "
+            "SET a.status = $new_status "
+            "RETURN a;",
+            customer_id=customer_id, car_id=car_id, new_status=new_status)
+
+        return {"status": f"Car returned successfully, status updated to {new_status}"}
