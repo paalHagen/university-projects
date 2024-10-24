@@ -1,3 +1,8 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from flask import Flask, request
 from neo4j_folder.DB import create_car, read_cars, update_car, delete_car
 from neo4j_folder.DB import create_customer, read_customers, update_customer, delete_customer
