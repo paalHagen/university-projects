@@ -46,11 +46,13 @@ def delete_car(car_id):
 #                   CUSTOMER METODENE
 
 def create_customer(customer_id, name, age, address):
-
-    customers = _get_connection().execute_query("MERGE (a:Customer{customer_id:$customer_id, name:$name, age:$age, address:$address})RETURN a;",
-    customer_id=customer_id, name=name,age=age,address=address)
-    nodes_json = [node_to_json(record["a"])for record in customers]
-    return nodes_json
+    with _get_connection().session() as session:
+        customer = session.run(
+            "MERGE (a:Customer{customer_id:$customer_id, name:$name, age:$age, address:$address})RETURN a;",
+            customer_id=customer_id, name=name,age=age,address=address
+        )
+        nodes_json = [node_to_json(record["a"])for record in customer]
+        return nodes_json
 
 def read_customers():
     with _get_connection().session() as session:
