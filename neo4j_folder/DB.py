@@ -56,7 +56,7 @@ def create_customer(customer_id, name, age, address):
 
 def read_customers():
     with _get_connection().session() as session:
-        customers = session.run("MATCH (a:Customers) RETURN a;")
+        customers = session.run("MATCH (a:Customer) RETURN a;")
         nodes_json = [node_to_json(record["a"])for record in customers]
         return nodes_json
 
@@ -83,7 +83,7 @@ def create_employee(employee_id, name, address, branch):
 
 def read_employees():
     with _get_connection().session() as session:
-        employees = session.run("MATCH (a:Employees) RETURN a;")
+        employees = session.run("MATCH (a:Employee) RETURN a;")
         nodes_json = [node_to_json(record["a"])for record in employees]
         return nodes_json
 
@@ -95,7 +95,7 @@ def update_employee(employee_id, name, address, branch):
         return nodes_json
 
 def delete_employee(employee_id):
-    _get_connection().execute_query("MATCH (a:Employee{employee_id:Semployee_id}) delete a;", employee_id=employee_id)
+    _get_connection().execute_query("MATCH (a:Employee{employee_id:$employee_id}) delete a;", employee_id=employee_id)
 
 #  ORDER CAR METODENE
 # ---------------------------------------------------------------
