@@ -90,7 +90,7 @@ def read_employees():
 def update_employee(employee_id, name, address, branch):
     with _get_connection().session() as session:
         employees = session.run("MATCH (a:Employee{employee_id:$employee_id}) set a.name=$name, a.address=$address, a.branch=$branch RETURN a;",
-        employee_id, name, address, branch)
+        employee_id=employee_id, name=name, address=address, branch=branch)
         nodes_json = [node_to_json(record["a"])for record in employees]
         return nodes_json
 
@@ -170,7 +170,7 @@ def rent_car(customer_id, car_id):
         
         # Hvis kunden har booket bilen, blir bilens status endret.
         session.run(
-            "MATCH (c:Customer {customer_id: $customer_id})-[:ORDERED]->(a:Car {car_id: $car_id}) "
+            "MATCH (c:Customer {customer_id: $customer_id})-[:RENTED]->(a:Car {car_id: $car_id}) "
             "SET a.status = 'rented' "
             "RETURN a;",
             customer_id=customer_id, car_id=car_id)
