@@ -1,0 +1,162 @@
+<!-- Obligatory assignment 6 -->
+
+<!-- Task 1 -->
+<!-- Documentation:
+D3.js version 4 is used.
+
+A scatterplot is created below, which displays time and temperature from the CSV file.
+Icons placed on the plot are chosen based on time (different symbols at night, e.g moon/night icon), temperature
+(e.g sun icon) and precipitation (e.g rain icon). There are more icons. Note that if a data point is during night, then this
+will override any other possible icons that can appear. Also, I just have one night icon. An improvement would be to have
+more icons for more variety/accuracy.
+
+All values in the CSV file are strings. Date and time are converted to JS Date Objects (because we need it to get hours
+when adding icons), temperature and precipitation is converted from string to numbers (so we can perform the logic operations
+when adding icons).
+
+A scale and axis is created for both the x-axis (time, and the domain is the entire april 28th, e.g 24 hours) and
+the y-axis (temperature, and the domain is 0 - 16 degrees). Grid/squares are made with D3 to match the ticks, since this
+was difficult with CSS. -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Obligatory assignment 6</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <style>
+      #scatterplot svg {
+        background-color: teal;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="scatterplot"></div>
+
+    <script>
+      // 1. SVG dimensions + from and to variable
+      const margin = { top: 20, right: 30, bottom: 40, left: 50 };
+      const width = 1400 - margin.left - margin.right;
+      const height = 500 - margin.top - margin.bottom;
+
+      const from = new Date(2025, 3, 28, 0, 0, 0);
+      const to = new Date(2025, 3, 28, 24, 0, 0);
+
+      // 2. Create the SVG container (where the chart will be drawn)
+      var svg = d3
+        .select("#scatterplot")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      // 3. Load CSV file (whatever uses the data must be inside d3.csv, because of callback function)
+      d3.csv("sampledata.csv", function (data) {
+        console.log(data);
+
+        // 4. Convert strings to numbers (otherwise we cant do logic operations with them)
+        // + combine date and time into a single Date object (because we need it to get hours when adding icons)
+        data.forEach(function (d) {
+          d.dateTime = new Date(d.Date + "T" + d.Time);
+          d.Temperature = +d.Temperature;
+          d.Precipitation = +d.Precipitation;
+        });
+
+        // 5. Create scales
+        // X-axis scale (time, width in the chart)
+        const time = d3.scaleTime().domain([from, to]).range([0, width]);
+        console.log(
+          "Time -> 12.00 (input):",
+          time(new Date(2025, 3, 28, 12, 0, 0))
+        );
+
+        // Y-axis scale (temperature, height in the chart)
+        var temp = d3.scaleLinear().domain([0, 16]).range([height, 0]);
+        console.log("Temperature -> 8 degrees (input):", temp(8));
+
+        // 6. Create and append axes (labels) to the SVG (the actual representation of the scales)
+        // X-axis
+        const xAxis = d3
+          .axisBottom(time)
+          .tickValues(d3.timeHours(from, to, 1)) // labels (00, 01, 02, e.g every hour)
+          .tickFormat(d3.timeFormat("%H")); // the hour is extracted and used as the label
+
+        svg
+          .append("g")
+          .attr("transform", `translate(0, ${height})`) // moves the X-axis line to the bottom (if not it would be at the top)
+          .call(xAxis);
+
+        // Y-axis
+        const yAxis = d3
+          .axisLeft(temp)
+          .ticks(8) // number of ticks
+          .tickFormat((d) => `${d}°`); // a degree symbol is added after each number
+
+        svg.append("g").call(yAxis);
+
+        // 7. Create and append grid to the SVG
+        // Horizontal grid lines
+        svg
+          .append("g")
+          .attr("class", "grid")
+          .call(d3.axisLeft(temp).ticks(8).tickSize(-width).tickFormat(""));
+
+        // Vertical grid lines
+        svg
+          .append("g")
+          .attr("class", "grid")
+          .attr("transform", `translate(0,${height})`)
+          .call(
+            d3
+              .axisBottom(time)
+              .tickValues(d3.timeHours(from, to, 1))
+              .tickSize(-height)
+              .tickFormat("")
+          );
+
+        // 8. Add weather icons (see .png images)
+        // The setup for creating images
+        const images = svg
+          .append("g")
+          .selectAll("image") // prepare to create images
+          .data(data) // the data is binded
+          .enter() // placeholder for each data point is created
+          .append("image"); // create an image for each placeholder
+
+        // Attributes for the icons (images) below this
+        // Position icons at data points
+        images
+          .attr("x", function (d) {
+            return time(d.dateTime);
+          })
+          .attr("y", function (d) {
+            return temp(d.Temperature);
+          }) // Moving the icons (to see if they can be more aligned with the labels)
+          .attr("transform", "translate(-10, -10)")
+          .attr("width", 20)
+          .attr("height", 20)
+          .attr("xlink:href", function (d) {
+            const gets_the_hour = d.dateTime.getHours();
+            const check_for_night = gets_the_hour >= 21 || gets_the_hour < 6;
+            let icon;
+
+            if (d.Precipitation > 1.0) {
+              icon = "5.png"; // rainy icon
+            } else if (d.Precipitation > 0) {
+              icon = "3.png"; // a little rain icon
+            } else if (d.Temperature > 12) {
+              icon = "4.png"; // sun icon
+            } else {
+              icon = "2.png"; // cloudy and sunny icon
+            }
+
+            if (check_for_night) {
+              icon = "1.png"; // moon/night icon
+            }
+
+            return icon;
+          });
+      });
+    </script>
+  </body>
+</html>

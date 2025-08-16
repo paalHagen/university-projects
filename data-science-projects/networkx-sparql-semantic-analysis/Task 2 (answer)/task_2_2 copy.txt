@@ -1,0 +1,12 @@
+# 2.2:
+SELECT ?poets ?poetsLabel ?dateofbirth ?dateofbirthLabel
+WHERE {
+  ?poets wdt:P31 wd:Q5. # ?poets is an instance of human
+  ?poets wdt:P106 wd:Q49757. # ?poets has occupation poet
+  ?poets wdt:P27 wd:Q20. # ?poets has country of citizenship in Norway
+  ?poets wdt:P569 ?dateofbirth #?poets has date of birth at ?dateofbirth
+  FILTER(YEAR(?dateofbirth) > 1950) # only show statements that have ?dateofbirth after 1950
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en".
+  }
+}

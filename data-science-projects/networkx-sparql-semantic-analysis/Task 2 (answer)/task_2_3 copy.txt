@@ -1,0 +1,5 @@
+# 2.3:
+SELECT (COUNT(?universities) AS ?count)
+WHERE {
+  ?universities wdt:P31 wd:Q3918 # ?universities is an instance of university
+}

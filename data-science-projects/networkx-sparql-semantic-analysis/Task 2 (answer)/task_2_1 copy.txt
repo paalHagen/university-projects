@@ -1,0 +1,13 @@
+# 2.1:
+SELECT ?politician ?politicianLabel
+  WHERE {
+  ?politician wdt:P31 wd:Q5. # ?politician is an instance of human
+  ?politician wdt:P106 wd:Q82955. # ?politician has occupation politician
+  ?politician wdt:P27 wd:Q30. # ?politician has country of citizenship in United States
+  ?politician wdt:P22 ?father. # ?politician has father ?father
+  ?father wdt:P31 wd:Q5. # ?father is an instance of human
+  ?father wdt:P106 wd:Q82955. # ?father has occupation politician
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en".
+  }
+}

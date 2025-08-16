@@ -1,0 +1,13 @@
+# 2.5:
+SELECT ?people ?peopleLabel ?birthplace ?birthplaceLabel ?coordinates
+WHERE {
+  ?people wdt:P31 wd:Q5. # ?people is an instance of human
+  ?people wdt:P166 ?award. # ?people has received ?award
+  ?award wdt:P279* wd:Q7191. # ?award is a subclass of Nobel Prize (includes all types of Nobel prize, several
+  # levels down e.g *)
+  ?people wdt:P19 ?birthplace. # ?people has place of birth at ?birthplace
+  ?birthplace wdt:P625 ?coordinates # coordinates of birthplace
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en".
+  }
+}
