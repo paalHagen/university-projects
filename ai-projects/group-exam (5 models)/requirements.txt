@@ -1,0 +1,37 @@
+# Tensorflow requires: python==3.11.8
+category_encoders==2.8.0
+certifi==2025.1.31
+charset-normalizer==3.4.1
+contourpy==1.3.1
+cycler==0.12.1
+fonttools==4.56.0
+idna==3.10
+imageio==2.37.0
+imbalanced-learn==0.13.0
+joblib==1.4.2
+kiwisolver==1.4.7
+matplotlib==3.10.1
+mglearn==0.2.0
+numpy==2.0.2
+packaging==24.2
+pandas==2.2.3
+patsy==1.0.1
+pillow==11.2.1
+pyparsing==3.2.3
+python-dateutil==2.9.0.post0
+pytz==2025.2
+requests==2.32.3
+scikit-learn==1.6.1
+scipy==1.15.2
+seaborn==0.13.2
+six==1.16.0
+sklearn-compat==0.1.3
+spacy==3.7.4
+# After installation, run:
+# python -m spacy download en_core_web_sm
+statsmodels==0.14.4
+tensorflow==2.18.0
+threadpoolctl==3.6.0
+tzdata==2025.2
+urllib3==2.4.0
+# System dependency required: Graphviz must be installed separately
