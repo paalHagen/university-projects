@@ -1,7 +1,9 @@
 from neo4j import GraphDatabase, Driver
+import os
 
-URI = "neo4j+s://b729d323.databases.neo4j.io"
-AUTH = ("neo4j", "passord")
+# Get credentials from environment variables
+URI = os.getenv("NEO4J_URI")
+AUTH = (os.getenv("NEO4J_USER"), os.getenv("NEO4J_PASSWORD"))
 
 def _get_connection() -> Driver:
     driver =GraphDatabase.driver(URI, auth=AUTH)
@@ -98,12 +100,12 @@ def delete_employee(employee_id):
     _get_connection().execute_query("MATCH (a:Employee{employee_id:$employee_id}) delete a;", employee_id=employee_id)
 
 #  ORDER CAR METODENE
-# ---------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 # ORDER a car
 def order_car(customer_id, car_id):
     with _get_connection().session() as session:
-        # sjekker om bilen er tilgjengelig
+        # Checks if car is available
         car = session.run(
             "MATCH (a:Car {car_id: $car_id}) "
             "RETURN a.status AS status;",
@@ -112,7 +114,7 @@ def order_car(customer_id, car_id):
         if car and car["status"] != 'available':
             return {"error": "This car is not available"}, 400
         
-        # sjekker om customer allerede har bestilt en bil
+        # Checks if customer already has ordered a car
         previous_order = session.run(
             "MATCH (c:Customer {customer_id: $customer_id})-[:ORDERED]->(a:Car) "
             "RETURN a LIMIT 1;",
@@ -121,7 +123,7 @@ def order_car(customer_id, car_id):
         if previous_order:
             return {"error": "Customer has already ordered a car"}, 400
         
-        # Hvis bilen er tilgjengelig og kunden ikke har bestilt en annen bil. Så vil bestillingen gå igjennom. 
+        # If the car is available and the customer have not ordered another car, then the order will be processed
         session.run(
             "MATCH (c:Customer {customer_id: $customer_id}), (a:Car {car_id: $car_id}) "
             "MERGE (c)-[:ORDERED]->(a) "
@@ -135,7 +137,7 @@ def order_car(customer_id, car_id):
 
 def cancel_order_car(customer_id, car_id):
     with _get_connection().session() as session:
-        # Sjekker om kunden har bestilt en bil
+        # Checks if the customer has ordered a car
         order = session.run(
             "MATCH (c:Customer {customer_id: $customer_id})-[r:ORDERED]->(a:Car {car_id: $car_id}) "
             "RETURN r;",
@@ -144,7 +146,6 @@ def cancel_order_car(customer_id, car_id):
         if not order:
             return {"error": "No order found for this customer and car"}, 400
 
-        # Om det er en bestilling mellom kunden til den bilen, blir det forholdet fjernet.
         session.run(
             "MATCH (c:Customer {customer_id: $customer_id})-[r:ORDERED]->(a:Car {car_id: $car_id}) "
             "DELETE r "
@@ -159,7 +160,7 @@ def cancel_order_car(customer_id, car_id):
 
 def rent_car(customer_id, car_id):
     with _get_connection().session() as session:
-        # Sjekker om kunden har booket bilen
+        # Checks if the customer has booked the car
         booking = session.run(
             "MATCH (c:Customer {customer_id: $customer_id})-[:ORDERED]->(a:Car {car_id: $car_id}) "
             "RETURN a;",
@@ -168,7 +169,7 @@ def rent_car(customer_id, car_id):
         if not booking:
             return {"error": "Customer does not have a booking for this car"}, 400
         
-        # Hvis kunden har booket bilen, blir bilens status endret.
+        # If the customer has booked the car, then the cars status is changed
         session.run(
             "MATCH (c:Customer {customer_id: $customer_id})-[:RENTED]->(a:Car {car_id: $car_id}) "
             "SET a.status = 'rented' "
@@ -177,11 +178,11 @@ def rent_car(customer_id, car_id):
 
         return {"status": "Car rented successfully, status updated to rented"}
 
-#Return car
+# Return car
 
 def return_car(customer_id, car_id, return_status):
     with _get_connection().session() as session:
-        # Sjekker om kunden har leid bilen.
+        # Checks if the customer has rented the car
         rental = session.run(
             "MATCH (c:Customer {customer_id: $customer_id})-[:ORDERED|RENTED]->(a:Car {car_id: $car_id}) "
             "RETURN a;",
@@ -190,7 +191,7 @@ def return_car(customer_id, car_id, return_status):
         if not rental:
             return {"error": "Customer has not rented this car"}, 400
         
-        # Endrer statusen til bilen basert på tilstanden
+        # Changes the status for the car based on its condition
         if return_status == 'ok':
             new_status = 'available'
         elif return_status == 'damaged':
@@ -198,7 +199,6 @@ def return_car(customer_id, car_id, return_status):
         else:
             return {"error": "Invalid return status"}, 400
 
-        # Oppdaterer bilens status på bilen og fjerner forholdet. 
         session.run(
             "MATCH (c:Customer {customer_id: $customer_id})-[r:ORDERED|RENTED]->(a:Car {car_id: $car_id}) "
             "DELETE r "
