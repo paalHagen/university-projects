@@ -1,12 +1,14 @@
 # Group Exam: Machine Learning Models
 
-This project contains the notebook `Group_exam.ipynb`, which demonstrates and compares five different machine learning models on the dataset `Hotel_Reviews.csv`. The models implemented include:
+This project contains the notebook `Group_exam.ipynb`, which demonstrates and compares five different machine learning models on the dataset `Hotel_Reviews.csv`.
 
-- LSTM
-- Logistic Regression
-- Random Forest
-- Naive Bayes
-- Convolutional Neural Network
+## Models and Contributors
+
+- LSTM (Pål Hagen Størksen)
+- Logistic Regression (Sondre)
+- Random Forest (Contributor: TBD)
+- Naive Bayes (Pål Hagen Størksen)
+- Convolutional Neural Network (Pål Hagen Størksen, Sondre)
 
 ## Project Structure
 
